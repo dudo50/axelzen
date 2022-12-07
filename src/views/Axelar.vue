@@ -21,7 +21,7 @@
     <b-field class="textt" label-position="inside" label="Insert token amount">
         <b-input expanded @input.native="summ($event)" v-model="sum"></b-input>
     </b-field>
-    <b-button expanded style="margin-bottom: 1%" label="Transfer assets"></b-button>
+    <b-button expanded @click="transactGMP()" style="margin-bottom: 1%" label="Transfer assets"></b-button>
     <b-button @click="calcSum()" expanded label="Calculate fees"></b-button>
 
     <p v-if="(fee!=0)" class="undername">Fee for this cross-chain transfer: {{(fee.fee.amount)}}</p>
@@ -33,6 +33,7 @@
 
 <script lang="ts">
 import { defineComponent } from '@vue/composition-api'
+import web3 from 'web3'
 import {
   AxelarQueryAPI,
   CHAINS,
@@ -49,7 +50,7 @@ export default defineComponent({
       sum: 0 as number,
       fee: 0 as any,
       sumWfee: 0 as number,
-      addr: "" as String,
+      addr: "" as string,
     };
   },
   mounted: async function () {
@@ -80,9 +81,33 @@ export default defineComponent({
           this.addr=value.target.value
         },
 
+        async transactGMP(){
+          var err= 0;
+          if(this.key=="" || this.keyy=="" || this.token=="" || this.sum==0 || this.addr=="")
+          {
+            this.$notify({ text: 'You did not specify details required!', type: 'error', duration: 4000,speed: 100})
+          }
+          else{
+            //Verify addr
+            try {
+              const address = web3.utils.toChecksumAddress(this.addr)
+            } catch(e) { 
+              this.$notify({ text: `Address you provided is not valid ETH style address.`, type: 'error', duration: 4000,speed: 100})
+              err = 1;
+            }
+            if (err == 0 ){
+              console.log("HI")
+            } 
+            else{
+              this.$notify({ text: `Your transfer was unable to be processed due to some issue, check details you provided.`, type: 'error', duration: 10000,speed: 100})
+            }
+
+          }
+        },
+
         async calcSum(){
           if(this.key=="" || this.keyy=="" || this.token=="" || this.sum==0){
-            this.$notify({ text: 'You did not specify detail required!', type: 'error', duration: 4000,speed: 100})
+            this.$notify({ text: 'You did not specify details required!', type: 'error', duration: 4000,speed: 100})
           }
           else{
             this.$notify({ text: 'Your estimate is generating!', type:"success", duration: 4000,speed: 100})
@@ -97,7 +122,8 @@ export default defineComponent({
               this.sum
             );
             this.fee = fee
-            this.sumWfee = Number(this.sum)+ Number(this.fee.fee.amount) 
+            this.sumWfee = await Number(this.sum)+ await Number(this.fee.fee.amount) 
+            console.log(this.sumWfee, Number(this.sum), Number(this.fee.fee.amount)  )
           }
         }
   }
