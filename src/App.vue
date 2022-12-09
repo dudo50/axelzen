@@ -62,10 +62,15 @@ export default defineComponent({
   },
   methods:{
     onComplete(data){
-      this.$notify({ text: 'Your wallet is connected!', type:"success", duration: 4000,speed: 100})
       console.log('data:', data);
-      this.name = data.metaMaskAddress.slice(0,8)+"..";
-    
+      if (data.metaMaskAddress == "")
+      {
+        this.$notify({ text: 'There was an error connecting your wallet! Please allow metamask by opening extension manually and refresh page after that!', type:"error", duration: 10000,speed: 100})
+      }
+      {
+        this.$notify({ text: 'Your wallet is connected!', type:"success", duration: 4000,speed: 100})
+        this.name = data.metaMaskAddress.slice(0,8)+"..";
+      }    
     },
     connect() {
       this.$refs.metamask.init();
