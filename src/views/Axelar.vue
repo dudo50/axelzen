@@ -27,6 +27,8 @@
     <p v-if="(fee!=0)" class="undername">Fee for this cross-chain transfer: {{(fee.fee.amount)}}</p>
     <p v-if="(fee!=0)" class="undername">Total transaction cost with your amount: {{sumWfee}}</p>
 
+    <p style="margin-top:20%">Do not forget to add all networks you wish to use into your Metamask. They can be added in link below by clicking metamask logo.</p>
+    <a href="https://docs.axelar.dev/dev/build/contract-addresses/testnet">Axelar docs</a>
 
   </div>
 </template>
@@ -49,7 +51,7 @@ export default defineComponent({
       key: "" as String,
       sum: 0 as number,
       fee: 0 as any,
-      sumWfee: 0 as number,
+      sumWfee: 0 as unknown as BigInt,
       addr: "" as string,
     };
   },
@@ -81,6 +83,10 @@ export default defineComponent({
           this.addr=value.target.value
         },
 
+        async valadd(val1: number, val2: number){
+          this.sumWfee = BigInt(val1)+ BigInt(val2)
+        },
+
         async transactGMP(){
           var err= 0;
           if(this.key=="" || this.keyy=="" || this.token=="" || this.sum==0 || this.addr=="")
@@ -96,7 +102,42 @@ export default defineComponent({
               err = 1;
             }
             if (err == 0 ){
-              console.log("HI")
+              //Magic
+              var axlgateway = ""
+              var axlgas = ""
+              if (this.key== "Moonbeam"){
+                axlgateway = "0x5769D84DD62a6fD969856c75c7D321b84d455929"
+                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
+              }
+              else if(this.key == "Aurora"){
+                axlgateway = "0x304acf330bbE08d1e512eefaa92F6a57871fD895"
+                axlgas = "0xA2C84547Db9732B27D45c06218DDAEFcc71e452D"
+              }
+              else if(this.key == "Avalanche"){
+                axlgateway = "0xC249632c2D40b9001FE907806902f63038B737Ab"
+                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
+              }
+              else if(this.key == "Binance"){
+                axlgateway = "0x4D147dCb984e6affEEC47e44293DA442580A3Ec0"
+                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
+              }
+              else if(this.key == "Fantom"){
+                axlgateway = "0x97837985Ec0494E7b9C71f5D3f9250188477ae14"
+                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
+              }
+              else if(this.key == "Polygon"){
+                axlgateway = "0xBF62ef1486468a6bd26Dd669C06db43dEd5B849B"
+                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
+              }
+              else if(this.key == "Ethereum"){
+                axlgateway = "0xe432150cce91c13a887f7D836923d5597adD8E31"
+                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"                
+              }
+              else{
+                this.$notify({ text: `How have you even got there!?.`, type: 'error', duration: 10000,speed: 100})
+                return
+              }
+
             } 
             else{
               this.$notify({ text: `Your transfer was unable to be processed due to some issue, check details you provided.`, type: 'error', duration: 10000,speed: 100})
@@ -122,8 +163,7 @@ export default defineComponent({
               this.sum
             );
             this.fee = fee
-            this.sumWfee = await Number(this.sum)+ await Number(this.fee.fee.amount) 
-            console.log(this.sumWfee, Number(this.sum), Number(this.fee.fee.amount)  )
+            this.valadd(this.sum, this.fee.fee.amount)
           }
         }
   }
