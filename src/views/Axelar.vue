@@ -35,12 +35,9 @@
 
 <script lang="ts">
 import { defineComponent } from '@vue/composition-api'
+import { Contract, ethers, getDefaultProvider, providers } from 'ethers';
+import { AxelarAssetTransfer, CHAINS, AxelarQueryAPI, Environment, EvmChain, GasToken } from '@axelar-network/axelarjs-sdk';
 import web3 from 'web3'
-import {
-  AxelarQueryAPI,
-  CHAINS,
-  Environment,
-} from "@axelar-network/axelarjs-sdk";
 export default defineComponent({
   data() {
     return {
@@ -57,9 +54,7 @@ export default defineComponent({
   },
   mounted: async function () {
     this.items.push("Moonbeam")
-    this.items.push("Aurora")
     this.items.push("Avalanche")
-    this.items.push("Binance")
     this.items.push("Fantom")
     this.items.push("Polygon")
     this.items.push("Ethereum")
@@ -155,10 +150,48 @@ export default defineComponent({
             const axelarQuery = new AxelarQueryAPI({
             environment: Environment.TESTNET,
             });
+            var chainFrom = CHAINS.TESTNET.MOONBEAM
+            var chainTo = CHAINS.TESTNET.AVALANCHE
+
+
+            //SENDER CHAIN
+            if(this.key == "Moonbeam"){
+              chainFrom = CHAINS.TESTNET.MOONBEAM
+            }
+            else if(this.key == "Avalanche"){
+              chainFrom = CHAINS.TESTNET.AVALANCHE
+            }
+            else if(this.key == "Polygon"){
+              chainFrom = CHAINS.TESTNET.POLYGON
+            }
+            else if(this.key == "Fantom"){
+              chainFrom = CHAINS.TESTNET.FANTOM
+            }
+            else if(this.key == "Ethereum"){
+              chainFrom = CHAINS.TESTNET.ETHEREUM
+            }
+
+            //DESTINATION CHAIN
+            if(this.keyy == "Moonbeam"){
+              chainTo = CHAINS.TESTNET.MOONBEAM
+            }
+            else if(this.keyy == "Avalanche"){
+              chainTo = CHAINS.TESTNET.AVALANCHE
+            }
+            else if(this.keyy == "Polygon"){
+              chainTo = CHAINS.TESTNET.POLYGON
+            }
+            else if(this.keyy == "Fantom"){
+              chainTo = CHAINS.TESTNET.FANTOM
+            }
+            else if(this.keyy == "Ethereum"){
+              chainTo = CHAINS.TESTNET.ETHEREUM
+            }
+
 
             const fee = await axelarQuery.getTransferFee(
-              CHAINS.TESTNET.MOONBEAM,
-              CHAINS.TESTNET.AVALANCHE,
+              chainFrom,
+              chainTo,
               this.token,
               this.sum
             );
