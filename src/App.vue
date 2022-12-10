@@ -42,24 +42,6 @@ export default defineComponent({
 
     };
   },
-  mounted: async function () {
-    this.items.push("Moonbeam")
-    this.items.push("Aurora")
-    this.items.push("Avalanche")
-    this.items.push("Binance")
-    this.items.push("Fantom")
-    this.items.push("Polygon")
-    this.items.push("Ethereum")
-
-    this.tokens.push("uaxl")
-    this.tokens.push("wmatic-wei")
-    this.tokens.push("wftm-wei")
-    this.tokens.push("eth-wei")
-    this.tokens.push("wavax-wei")
-    this.tokens.push("wdev-wei")
-    this.tokens.push("uausdc")
-    this.tokens.push("wbnb-wei")
-  },
   methods:{
     onComplete(data){
       console.log('data:', data);

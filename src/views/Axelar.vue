@@ -79,71 +79,23 @@ export default defineComponent({
         },
 
         async valadd(val1: number, val2: number){
-          this.sumWfee = BigInt(val1)+ BigInt(val2)
+          this.sumWfee = BigInt(0)
+          this.sumWfee =  BigInt(val1)+  BigInt(val2)
         },
 
-        async transactGMP(){
-          var err= 0;
-          if(this.key=="" || this.keyy=="" || this.token=="" || this.sum==0 || this.addr=="")
-          {
-            this.$notify({ text: 'You did not specify details required!', type: 'error', duration: 4000,speed: 100})
-          }
-          else{
-            //Verify addr
-            try {
-              const address = web3.utils.toChecksumAddress(this.addr)
-            } catch(e) { 
-              this.$notify({ text: `Address you provided is not valid ETH style address.`, type: 'error', duration: 4000,speed: 100})
-              err = 1;
-            }
-            if (err == 0 ){
-              //MAGIC
-
-              const axelarAssetTransfer = new AxelarAssetTransfer({
-                environment: Environment.TESTNET,
-              });
-
-              //GET FEES
-              await this.calcSum()
-
-              //GET DEPOSIT ADDR
-              if(this.sum > this.fee.fee.amount){
-                const depositAddress = await axelarAssetTransfer.getDepositAddress(
-                  this.key, // source chain
-                  this.keyy, // destination chain
-                  this.addr, // destination address
-                  this.token // denom of asset. See note (2) below
-                );
-                console.log(depositAddress)
-
-                //CREATE TRANSACTION TO DESTINATION ADDR
-
-                //MAGIC OVER.
-              }
-              else{
-                this.$notify({ text: `Your transfer was unable to be processed due to insufficient sum provided. Calculate your sum with fees first and try to assign again.`, type: 'error', duration: 10000,speed: 100})
-              }
-
-            } 
-            else{
-              this.$notify({ text: `Your transfer was unable to be processed due to some issue, check details you provided.`, type: 'error', duration: 10000,speed: 100})
-            }
-
-          }
-        },
-
-        async calcSum(){
+        async calcFee(){
           if(this.key=="" || this.keyy=="" || this.token=="" || this.sum==0){
             this.$notify({ text: 'You did not specify details required!', type: 'error', duration: 4000,speed: 100})
           }
           else{
-            this.$notify({ text: 'Your estimate is generating!', type:"success", duration: 4000,speed: 100})
+            this.$notify({ text: 'We are currently calculating fees for your transaction.', duration: 6000,speed: 100})
+
             const axelarQuery = new AxelarQueryAPI({
             environment: Environment.TESTNET,
             });
+
             var chainFrom = CHAINS.TESTNET.MOONBEAM
             var chainTo = CHAINS.TESTNET.AVALANCHE
-
 
             //SENDER CHAIN
             if(this.key == "Moonbeam"){
@@ -186,8 +138,123 @@ export default defineComponent({
               this.token,
               this.sum
             );
+            
+            return fee
+          }
+        },
+
+        async transactGMP(){
+          var err= 0;
+          if(this.key=="" || this.keyy=="" || this.token=="" || this.sum==0 || this.addr=="")
+          {
+            this.$notify({ text: 'You did not specify details required!', type: 'error', duration: 4000,speed: 100})
+          }
+          else{
+            //Verify addr
+            try {
+              const address = web3.utils.toChecksumAddress(this.addr)
+            } catch(e) { 
+              this.$notify({ text: `Address you provided is not valid ETH style address.`, type: 'error', duration: 4000,speed: 100})
+              err = 1;
+            }
+            if (err == 0 ){
+              //MAGIC
+
+              const axelarAssetTransfer = new AxelarAssetTransfer({
+                environment: Environment.TESTNET,
+              });
+
+              //GET FEES
+              const fees = await this.calcFee()
+
+              //GET DEPOSIT ADDR
+              if(this.sum > Number(fees?.fee?.amount)){
+                this.$notify({ text: 'Your deposit address is getting ready.', duration: 6000,speed: 100})
+
+                const depositAddress = await axelarAssetTransfer.getDepositAddress(
+                  this.key, // source chain
+                  this.keyy, // destination chain
+                  this.addr, // destination address
+                  this.token // denom of asset. See note (2) below
+                );
+                console.log(depositAddress)
+
+                //PREPARE TX TO PROVIDED ACC
+                
+                
+
+                //MAGIC OVER.
+              }
+              else{
+                this.$notify({ text: `Your transfer was unable to be processed due to insufficient sum provided. Calculate your sum with fees first and try to assign again.`, type: 'error', duration: 10000,speed: 100})
+              }
+
+            } 
+            else{
+              this.$notify({ text: `Your transfer was unable to be processed due to some issue, check details you provided.`, type: 'error', duration: 10000,speed: 100})
+            }
+
+          }
+        },
+
+        async calcSum(){
+          if(this.key=="" || this.keyy=="" || this.token=="" || this.sum==0){
+            this.$notify({ text: 'You did not specify details required!', type: 'error', duration: 4000,speed: 100})
+          }
+          else{
+            this.$notify({ text: 'Your estimate is generating!', type:"success", duration: 4000,speed: 100})
+
+            const axelarQuery = new AxelarQueryAPI({
+            environment: Environment.TESTNET,
+            });
+
+            var chainFrom = CHAINS.TESTNET.MOONBEAM
+            var chainTo = CHAINS.TESTNET.AVALANCHE
+
+            //SENDER CHAIN
+            if(this.key == "Moonbeam"){
+              chainFrom = CHAINS.TESTNET.MOONBEAM
+            }
+            else if(this.key == "Avalanche"){
+              chainFrom = CHAINS.TESTNET.AVALANCHE
+            }
+            else if(this.key == "Polygon"){
+              chainFrom = CHAINS.TESTNET.POLYGON
+            }
+            else if(this.key == "Fantom"){
+              chainFrom = CHAINS.TESTNET.FANTOM
+            }
+            else if(this.key == "Ethereum"){
+              chainFrom = CHAINS.TESTNET.ETHEREUM
+            }
+
+            //DESTINATION CHAIN
+            if(this.keyy == "Moonbeam"){
+              chainTo = CHAINS.TESTNET.MOONBEAM
+            }
+            else if(this.keyy == "Avalanche"){
+              chainTo = CHAINS.TESTNET.AVALANCHE
+            }
+            else if(this.keyy == "Polygon"){
+              chainTo = CHAINS.TESTNET.POLYGON
+            }
+            else if(this.keyy == "Fantom"){
+              chainTo = CHAINS.TESTNET.FANTOM
+            }
+            else if(this.keyy == "Ethereum"){
+              chainTo = CHAINS.TESTNET.ETHEREUM
+            }
+
+            //MAGIC FOR CALCULATING FEES FOR USER
+            const fee = await axelarQuery.getTransferFee(
+              chainFrom,
+              chainTo,
+              this.token,
+              this.sum
+            );
             this.fee = fee
             this.valadd(this.sum, this.fee.fee.amount)
+
           }
         }
   }
