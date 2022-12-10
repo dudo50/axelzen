@@ -44,8 +44,8 @@ export default defineComponent({
       items: [] as Array<string>,   //Stores Parachains connected to Relay chain
       tokens: [] as Array<string>,
       token: "" as string,
-      keyy: "" as String,
-      key: "" as String,
+      keyy: "" as string,
+      key: "" as string,
       sum: 0 as number,
       fee: 0 as any,
       sumWfee: 0 as unknown as BigInt,
@@ -57,7 +57,7 @@ export default defineComponent({
     this.items.push("Avalanche")
     this.items.push("Fantom")
     this.items.push("Polygon")
-    this.items.push("Ethereum")
+    this.items.push("ethereum-2")
 
     this.tokens.push("uaxl")
     this.tokens.push("wmatic-wei")
@@ -97,40 +97,31 @@ export default defineComponent({
               err = 1;
             }
             if (err == 0 ){
-              //Magic
-              var axlgateway = ""
-              var axlgas = ""
-              if (this.key== "Moonbeam"){
-                axlgateway = "0x5769D84DD62a6fD969856c75c7D321b84d455929"
-                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
-              }
-              else if(this.key == "Aurora"){
-                axlgateway = "0x304acf330bbE08d1e512eefaa92F6a57871fD895"
-                axlgas = "0xA2C84547Db9732B27D45c06218DDAEFcc71e452D"
-              }
-              else if(this.key == "Avalanche"){
-                axlgateway = "0xC249632c2D40b9001FE907806902f63038B737Ab"
-                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
-              }
-              else if(this.key == "Binance"){
-                axlgateway = "0x4D147dCb984e6affEEC47e44293DA442580A3Ec0"
-                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
-              }
-              else if(this.key == "Fantom"){
-                axlgateway = "0x97837985Ec0494E7b9C71f5D3f9250188477ae14"
-                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
-              }
-              else if(this.key == "Polygon"){
-                axlgateway = "0xBF62ef1486468a6bd26Dd669C06db43dEd5B849B"
-                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
-              }
-              else if(this.key == "Ethereum"){
-                axlgateway = "0xe432150cce91c13a887f7D836923d5597adD8E31"
-                axlgas = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"                
+              //MAGIC
+
+              const axelarAssetTransfer = new AxelarAssetTransfer({
+                environment: Environment.TESTNET,
+              });
+
+              //GET FEES
+              await this.calcSum()
+
+              //GET DEPOSIT ADDR
+              if(this.sum > this.fee.fee.amount){
+                const depositAddress = await axelarAssetTransfer.getDepositAddress(
+                  this.key, // source chain
+                  this.keyy, // destination chain
+                  this.addr, // destination address
+                  this.token // denom of asset. See note (2) below
+                );
+                console.log(depositAddress)
+
+                //CREATE TRANSACTION TO DESTINATION ADDR
+
+                //MAGIC OVER.
               }
               else{
-                this.$notify({ text: `How have you even got there!?.`, type: 'error', duration: 10000,speed: 100})
-                return
+                this.$notify({ text: `Your transfer was unable to be processed due to insufficient sum provided. Calculate your sum with fees first and try to assign again.`, type: 'error', duration: 10000,speed: 100})
               }
 
             } 
