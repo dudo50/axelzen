@@ -1,5 +1,7 @@
 <template>
   <div>
+    <p >Make sure to connect to correct network on your Metamask! (One you selected as origin)</p>
+
     <b-field class="textt" label-position="inside" label="Select origin chain">
       <b-select v-model="key" expanded placeholder="Select" required>
         <option v-for="(item) in items" :key="item">{{item}}</option>
@@ -27,17 +29,30 @@
     <p v-if="(fee!=0)" class="undername">Fee for this cross-chain transfer: {{(fee.fee.amount)}}</p>
     <p v-if="(fee!=0)" class="undername">Total transaction cost with your amount: {{sumWfee}}</p>
 
+    <li style="margin-top: 1%;" v-for="(tx, index) in txCheck" class="undername">
+      tx no.{{ index }} - <a href="txCheck[index]" target="_blank">Axelar testnet scan</a>
+    </li>
+
     <p style="margin-top:20%">Do not forget to add all networks you wish to use into your Metamask. They can be added in link below by clicking metamask logo.</p>
-    <a href="https://docs.axelar.dev/dev/build/contract-addresses/testnet">Axelar docs</a>
+    <a href="https://docs.axelar.dev/dev/build/contract-addresses/testnet" target="_blank">Axelar docs</a>
 
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from '@vue/composition-api'
-import { Contract, ethers, getDefaultProvider, providers } from 'ethers';
-import { AxelarAssetTransfer, CHAINS, AxelarQueryAPI, Environment, EvmChain, GasToken } from '@axelar-network/axelarjs-sdk';
+import { AxelarAssetTransfer, CHAINS, AxelarQueryAPI, Environment} from '@axelar-network/axelarjs-sdk';
 import web3 from 'web3'
+import AxelarGatewayContract from '../abi/IAxelarGateway.sol/IAxelarGateway.json';
+import IERC20 from '../abi/IERC20.sol/IERC20.json';
+import { Contract, ethers } from 'ethers';
+
+declare global{
+  interface Window{
+    ethereum: any
+  }
+}
+
 export default defineComponent({
   data() {
     return {
@@ -50,9 +65,13 @@ export default defineComponent({
       fee: 0 as any,
       sumWfee: 0 as unknown as BigInt,
       addr: "" as string,
+      isMetamaskSupported: false,
+      txCheck: [] as Array<string>,
+      txHash: "" as string
     };
   },
   mounted: async function () {
+
     this.items.push("Moonbeam")
     this.items.push("Avalanche")
     this.items.push("Fantom")
@@ -150,9 +169,10 @@ export default defineComponent({
             this.$notify({ text: 'You did not specify details required!', type: 'error', duration: 4000,speed: 100})
           }
           else{
-            //Verify addr
+
+            //Verify provided addr
             try {
-              const address = web3.utils.toChecksumAddress(this.addr)
+              web3.utils.toChecksumAddress(this.addr)
             } catch(e) { 
               this.$notify({ text: `Address you provided is not valid ETH style address.`, type: 'error', duration: 4000,speed: 100})
               err = 1;
@@ -160,6 +180,7 @@ export default defineComponent({
             if (err == 0 ){
               //MAGIC
 
+              //Init SDK
               const axelarAssetTransfer = new AxelarAssetTransfer({
                 environment: Environment.TESTNET,
               });
@@ -171,17 +192,69 @@ export default defineComponent({
               if(this.sum > Number(fees?.fee?.amount)){
                 this.$notify({ text: 'Your deposit address is getting ready.', duration: 6000,speed: 100})
 
+                //Pull up our address
+                const account = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = account.getSigner()
+
+                //Get chains for RPC and Gateways
+                let chains = require('../constants/testnet.json') 
+                let assets = require('../constants/assets.json')
+                
+                var chain: any
+                var asset: any
+
+                //Select our chain
+                if(this.key == "Moonbeam"){
+                  chain = chains.find((chain: any) => chain.name === 'Moonbeam') as any;
+                }
+                else if(this.key == "Avalanche"){
+                  chain = chains.find((chain: any) => chain.name === 'Avalanche') as any;
+                }
+                else if(this.key == "ethereum-2"){
+                  chain = chains.find((chain: any) => chain.name === 'Ethereum') as any;
+                }
+                else if(this.key == "Polygon"){
+                  chain = chains.find((chain: any) => chain.name === 'Polygon') as any;
+                }
+                else if(this.key == "Fantom"){
+                  chain = chains.find((chain: any) => chain.name === 'Fantom') as any;
+                }         
+
+                //Sellect correct symbol for our token
+                asset = assets.find((asset: any) => asset.name === this.token) as any;
+
+                const chainName = chain.name
+                const asstSym = asset[chainName]
+
+                //Get our gateway
+                const srcGatewayContract = new Contract(chain.gateway, AxelarGatewayContract.abi, signer);
+
+                //We get gateway contract for our selected currency and create contract
+                const srcTokenAddress = await srcGatewayContract.tokenAddresses(asstSym);
+                const srcErc20 = new Contract(srcTokenAddress, IERC20.abi, signer);
+
                 const depositAddress = await axelarAssetTransfer.getDepositAddress(
                   this.key, // source chain
                   this.keyy, // destination chain
                   this.addr, // destination address
                   this.token // denom of asset. See note (2) below
-                );
-                console.log(depositAddress)
+                );                
 
                 //PREPARE TX TO PROVIDED ACC
-                
-                
+
+                this.$notify({ text: 'Metamask should shortly prompt you to approve transfer.', duration: 6000,speed: 100})
+
+                //WE NEED ERC20 CONTRACT INTERACTION HERE
+                const txHash = await srcErc20
+                    .transfer(depositAddress, this.sum)
+                    .then((tx: any) => tx.wait())
+                    .then((receipt: any) => receipt.transactionHash);
+
+                console.log(txHash)
+                //LET USER CHECK TX IN THE EXPLORER
+                this.$notify({ text: 'Your transaction was completed, check it out in Axelar testnet scan.', type:"success", duration: 6000,speed: 100})
+
+                this.txCheck.push("https://testnet.axelarscan.io/transfer/" + txHash)
 
                 //MAGIC OVER.
               }
