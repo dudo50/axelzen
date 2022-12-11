@@ -30,7 +30,7 @@
     <p v-if="(fee!=0)" class="undername">Total transaction cost with your amount: {{sumWfee}}</p>
 
     <li style="margin-top: 1%;" v-for="(tx, index) in txCheck" class="undername">
-      tx no.{{ index }} - <a href="txCheck[index]" target="_blank">Axelar testnet scan</a>
+      tx no.{{ index+1 }} - <a :href="txCheck[index]" target="_blank">Axelar testnet scan</a>
     </li>
 
     <p style="margin-top:20%">Do not forget to add all networks you wish to use into your Metamask. They can be added in link below by clicking metamask logo.</p>
