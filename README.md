@@ -12,7 +12,7 @@
 
 
 # 1. Introduction 🌿
-Application is deployed & able to be previewed on following link - [Try out AxelZen on Heroku]()
+Application is deployed & able to be previewed on following link - [Try out AxelZen on Netlify](https://6395cee2f86b317e5ef41566--serene-beignet-5124ec.netlify.app/#/axl)
 
 AxelZen is GMP Transfer tool built specifically to enhance Axelar GMP functionality and make cross-chain transfers as simple as possible for everyone. Tool features calculation of fees for each transaction as well as GMP functionality itself. Users can simply login with Metamask and create GMP transfers within seconds. AxelZen UI is designed to be as straight forward as possible.
 
