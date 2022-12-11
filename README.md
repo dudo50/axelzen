@@ -66,3 +66,6 @@ pnpm build
 
 ## Project entered into:
 Axelar Gitcoin The Illuminate/22 Hackathon Bounty.
+
+Explanatory video:
+[Video link](https://www.youtube.com/watch?v=dkpx8M69OlY)
