@@ -56,7 +56,7 @@ declare global{
 export default defineComponent({
   data() {
     return {
-      items: [] as Array<string>,   //Stores Parachains connected to Relay chain
+      items: [] as Array<string>,   
       tokens: [] as Array<string>,
       token: "" as string,
       keyy: "" as string,
@@ -220,7 +220,7 @@ export default defineComponent({
                   chain = chains.find((chain: any) => chain.name === 'Fantom') as any;
                 }         
 
-                //Sellect correct symbol for our token
+                //Select correct symbol for our token
                 asset = assets.find((asset: any) => asset.name === this.token) as any;
 
                 const chainName = chain.name
